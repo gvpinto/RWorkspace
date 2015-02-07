@@ -339,11 +339,26 @@ if (getwd() != "/Users/gvpinto/R/GettingAndCleaningData") {
     setwd('/Users/gvpinto/R/GettingAndCleaningData')
 }
 
+if (getwd() != "C:\\Users\\bb2t1872\\R\\GettingAndCleaningData") {
+  setwd('C:\\Users\\bb2t1872\\R\\GettingAndCleaningData')
+}
+
 if (!file.exists("week1-quiz")) {
     dir.create("week1-quiz")
 }
 
-download.file(fileUrl, destfile = "./fdata_gov_NGAP.xlsx", method="curl")
+download.file(fileUrl, destfile = "./week1-quiz/fdata_gov_NGAP.xlsx", method="curl", mode="wb")
+download.file(fileUrl, destfile = ".\\week1-quiz\\fdata_gov_NGAP.xlsx", mode="wb")
 dateDownloaded <- date()
+Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jdk1.6.0_45\\jre')
+install.packages("xlsx")
 library(xlsx)
-data <- read.xlsx("./fdata_gov_NGAP.xlsx", sheetIndex = 1, header = TRUE, colIndex = c(7:15), rowIndex = c(18:23))
+dat <- read.xlsx(".\\week1-quiz\\fdata_gov_NGAP.xlsx", sheetIndex = 1, header = TRUE, colIndex = c(7:15), rowIndex = c(18:23))
+?read.xlsx
+sum(dat$Zip*dat$Ext,na.rm=T)
+
+## .4
+fileUrl <- "https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2Frestaurants.xml"
+?xmlTreeParse
+doc <- xmlTreeParse(fileUrl, userInternal = TRUE)
+install.packages("XmlTreeParse")
