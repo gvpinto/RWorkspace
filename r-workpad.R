@@ -358,7 +358,107 @@ dat <- read.xlsx(".\\week1-quiz\\fdata_gov_NGAP.xlsx", sheetIndex = 1, header = 
 sum(dat$Zip*dat$Ext,na.rm=T)
 
 ## .4
+install.packages("XML")
+library(XML)
+library (RCurl)
+curlVersion()$features 
+curlVersion()$protocol
 fileUrl <- "https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2Frestaurants.xml"
+tempFile <- getURL(fileUrl, ssl.verifyPeer=FALSE)
 ?xmlTreeParse
-doc <- xmlTreeParse(fileUrl, userInternal = TRUE)
-install.packages("XmlTreeParse")
+doc <- xmlTreeParse(tempFile, useInternal = TRUE)
+rootNode <- xmlRoot(doc)
+rootNode
+xmlName(rootNode)
+zipcodes <- xpathSApply(rootNode, "//zipcode", xmlValue)
+length(zipcodes_21231)
+
+## Question 5
+install.packages("data.table")
+library(data.table)
+fileUrl <- "https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2Fss06pid.csv"
+if (getwd() != "/Users/gvpinto/R/GettingAndCleaningData") {
+    setwd('/Users/gvpinto/R/GettingAndCleaningData')
+}
+
+if (!file.exists("week1-quiz")) {
+    dir.create("week1-quiz")
+}
+
+download.file(fileUrl, destfile = "./week1-quiz/Idaho-housing-2006.csv", method="curl")
+
+DT <- fread("./week1-quiz/Idaho-housing-2006.csv")
+head(DT)
+str(DT$pwgtp15)
+
+sapply(split(DT$pwgtp15,DT$SEX),mean)
+DT[,mean(pwgtp15),by=SEX]
+mean(DT[DT$SEX==1,]$pwgtp15); mean(DT[DT$SEX==2,]$pwgtp15)
+tapply(DT$pwgtp15,DT$SEX,mean)
+mean(DT$pwgtp15,by=DT$SEX)
+rowMeans(DT)[DT$SEX==1]; rowMeans(DT)[DT$SEX==2]
+
+
+install.packages("swirl")
+
+
+## MYSQL Connectivity using RMySQL package
+
+ucscDb <- dbConnect(MySQL(), user="genome", host="genome-mysql.cse.ucsc.edu")
+result <- dbGetQuery(ucscDb, "Show databases;"); dbDisconnect(ucscDb)
+
+hg19 <- dbConnect(MySQL(), user="genome", db="hg19", host="genome-mysql.cse.ucsc.edu")
+allTables <- dbListTables(hg19)
+length(allTables)
+allTables[1:5]
+
+dbListFields(hg19, "affyU133Plus2")
+
+dbGetQuery(hg19, "select count(*) from affyU133Plus2")
+
+## Read data into a data table
+affyData <- dbReadTable(hg19, "affyU133Plus2")
+warnings()
+head(affyData)
+
+## Select Subset of the data
+query <- dbSendQuery(hg19, "select * from affyU133Plus2 where misMatches between 1 and 3")
+affyMis <- fetch(query); quantile(affyMis$misMatches)
+affyMisSmall <- fetch(query, n = 10); dbClearResult(query)
+dim(affyMisSmall)
+dbDisconnect(hg19)
+
+## HDF5 Data sourcing
+source("http://bioconductor.org/biocLite.R")
+biocLite("rhdf5")
+library(rhdf5)
+created <- h5createFile("example.h5")
+created <- h5createGroup("example.h5", "foo")
+created <- h5createGroup("example.h5", "baa")
+created <- h5createGroup("example.h5", "foo/foobaa")
+h5ls("example.h5")
+
+A = matrix(1:10, nr = 5, nc = 2)
+h5write(A, "example.h5", "foo/A")
+B = array(seq(0.1, 2.0, by = 0.1), dim = c(5, 2, 2))
+B
+attr(B, "scale") <- "liter"
+B
+h5write(B, "example.h5", "foo/foobaa/B")
+h5ls("example.h5")
+
+df = data.frame(1L:5L, seq(0, 1, length.out = 5), c("ab", "cde", "fghi", "a", "s"), stringsAsFactors = FALSE)
+df
+h5write(df, "example.h5", "df")
+h5ls("example.h5")
+
+## Read H5 Data
+readA <- h5read("example.h5", "foo/A")
+readB <- h5read("example.h5", "foo/foobaa/B")
+readdf <- h5read("example.h5", "df")
+readA
+readdf
+
+## Writing and reading in chunks
+h5write(c(12, 13, 14), "example.h5", "foo/A", index = list(1:3, 1))
+h5read("example.h5", "foo/A")
