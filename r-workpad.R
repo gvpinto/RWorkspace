@@ -462,3 +462,73 @@ readdf
 ## Writing and reading in chunks
 h5write(c(12, 13, 14), "example.h5", "foo/A", index = list(1:3, 1))
 h5read("example.h5", "foo/A")
+
+
+
+## Question 2
+
+fileUrl <- "https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2Fss06pid.csv"
+
+if (getwd() != "/Users/gvpinto/R/GettingAndCleaningData") {
+    setwd('/Users/gvpinto/R/GettingAndCleaningData')
+}
+
+if (!file.exists("data")) {
+    dir.create("data")
+}
+
+download.file(fileUrl, destfile = "./data/american_community_survey.csv", method = "curl")
+dateDownloaded <- date()
+acs <- read.table("./data/american_community_survey.csv", sep = ",", header = TRUE)
+names(communityData)
+
+## Question 4
+
+url <- "http://biostat.jhsph.edu/~jleek/contact.html"
+html <- htmlTreeParse(url, useInternalNodes=T)
+html <- readLines(url)
+close(url)
+nchar(html[10])
+nchar(html[20])
+nchar(html[30])
+nchar(html[100])
+
+## Question 5
+
+fileURL <- "http://www.cpc.ncep.noaa.gov/data/indices/wksst8110.for"
+fileUrl <- "https://d396qusza40orc.cloudfront.net/getdata%2Fwksst8110.for"
+if (getwd() != "/Users/gvpinto/R/GettingAndCleaningData") {
+    setwd('/Users/gvpinto/R/GettingAndCleaningData')
+}
+
+if (!file.exists("data")) {
+    dir.create("data")
+}
+
+if (file.exists("./data/wksst8110.for")) {
+    file.remove("./data/wksst8110.for")
+}
+
+
+download.file(fileUrl, destfile = "./data/wksst8110.for", method = "curl")
+df <- read.fortran("./data/wksst8110.for",  format = c("X1", "A9", "X5", "2F4", "X5", "2F4", "X5", "2F4", "X5", "2F4"), as.is = TRUE, header = FALSE, skip = 4)
+
+dt <- tbl_df(df)
+dt
+rm(df)
+str(dt)
+summarise(dt, sum(V4))
+
+df <- read.fortran("./data/wksst8110.for",  format = c("X1", "A9", "X5", "2F4.1", "X5", "2F4.1", "X5", "2F4.1", "X5", "2F4.1"), as.is = TRUE, header = FALSE, skip = 4, col.names = c("week", "Nino1+2-SST", "Nino1+2-SSTA", "Nino3-SST", "Nino3-SSTA", "Nino34-SST", "Nino34-SSTA", "Nino4-SST", "Nino4-SSTA"))
+
+dt %>%
+    summarise(sum(V4) %>%
+    mutate(total = Nino3.SST + Nino4.SSTA) %>%
+    print
+
+dt %>%
+    summarise(Nino3.SST = sum(Nino3.SST), Nino4.SSTA = sum(Nino4.SSTA)) %>%
+    mutate(total = Nino3.SST + Nino4.SSTA) %>%
+    print
+names(dt)
+head(dt)
